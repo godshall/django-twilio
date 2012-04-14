@@ -15,4 +15,4 @@ from django_twilio import settings
 # install a later release of twilio-python that uses a different default API
 # version--we'll still be OK.
 twilio_client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID,
-        settings.TWILIO_AUTH_TOKEN, version='2010-04-01')
+        settings.TWILIO_AUTH_TOKEN, version=settings.TWILIO_API_VERSION)
