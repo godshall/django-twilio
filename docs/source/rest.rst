@@ -68,6 +68,29 @@ following code::
 See how you didn't have to worry about credentials or anything? Niceeee.
 
 
+Customize the Twilio API Version
+--------------------------------
+
+If you'd like to use a specific revision of the Twilio API (as documented on
+`Twilio's website <http://www.twilio.com/docs/api/rest>`_) you can set a custom
+version string in your ``settings.py`` file by overriding the default value for
+``TWILIO_API_VERSION``, for example::
+
+    # settings.py
+
+    ...
+    TWILIO_API_VERSION = '2010-04-01'
+    ...
+
+.. note::
+    Don't change this setting if you aren't *absolutely certain* you know what
+    you're doing. Changing the Twilio API version effects a lot of
+    django-twilio's behavior.
+
+Most users should *NOT* have to adjust this variable--it is here for the power
+users.
+
+
 Further Reading
 ---------------
 
