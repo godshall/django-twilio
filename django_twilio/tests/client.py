@@ -14,5 +14,5 @@ class TwilioClientTestCase(TestCase):
         self.assertEqual(twilio_client.auth, (settings.TWILIO_ACCOUNT_SID,
                 settings.TWILIO_AUTH_TOKEN))
 
-#    def test_sets_api_version_to_default(self):
-#        self.assertIn(settings.TWILIO_API_VERSION, twilio_client.account_uri)
+    def test_sets_api_version_to_default(self):
+        self.assertIn(settings.TWILIO_API_VERSION, twilio_client.account_uri)
