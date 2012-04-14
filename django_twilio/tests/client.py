@@ -1,5 +1,4 @@
 from django.test import TestCase
-
 from twilio.rest import TwilioRestClient
 
 from django_twilio.client import twilio_client
