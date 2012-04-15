@@ -1,3 +1,4 @@
+from .admin import *
 from .client import *
 from .decorators import *
 from .models import *
