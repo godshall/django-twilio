@@ -12,7 +12,7 @@ from django_twilio import settings as django_twilio_settings
 from django_twilio.tests.views import response_view, str_view, verb_view
 
 
-class TwilioViewTestCase(TestCase):
+class TwilioViewTest(TestCase):
     urls = 'django_twilio.tests.urls'
 
     def setUp(self):
