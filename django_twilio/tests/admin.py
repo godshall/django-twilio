@@ -48,8 +48,8 @@ class CallerAdminTest(TestCase):
         self.assertLess(pos_c1, pos_c2)
 
     def test_page_orders_callers_by_unicode_then_blacklist(self):
-        c1 = Caller.objects.create(phone_number='+18002223333', blacklisted=False)
-        c2 = Caller.objects.create(phone_number='+18002223331', blacklisted=True)
+        c1 = Caller.objects.create(phone_number='+18002223331', blacklisted=False)
+        c2 = Caller.objects.create(phone_number='+18002223333', blacklisted=True)
 
         response = self.client.get('/admin/django_twilio/caller/')
 
