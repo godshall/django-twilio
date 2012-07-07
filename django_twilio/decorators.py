@@ -111,4 +111,5 @@ def twilio_view(f):
             return HttpResponse(str(response), mimetype='application/xml')
         else:
             return response
+
     return decorator
