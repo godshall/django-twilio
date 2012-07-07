@@ -7,6 +7,8 @@ A simple library for building Twilio-powered Django webapps.
 * email:  rdegges@gmail.com
 * status: maintained, stable
 
+[![Build Status](https://secure.travis-ci.org/rdegges/django-twilio.png?branch=develop)](http://travis-ci.org/rdegges/django-twilio)
+
 
 ## Purpose
 
