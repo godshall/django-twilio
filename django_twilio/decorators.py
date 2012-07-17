@@ -15,7 +15,7 @@ from django_twilio import settings as django_twilio_settings
 from django_twilio.utils import get_blacklisted_response
 
 
-def twilio_view(f):
+def twilio_view(f, method='post', blacklist=True):
     """This decorator provides several helpful shortcuts for writing Twilio
     views.
 
