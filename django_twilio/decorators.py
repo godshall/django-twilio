@@ -93,9 +93,10 @@ def twilio_view(f, method='post', blacklist=True):
 
         # If the user requesting service is blacklisted, reject their
         # request.
-        blacklisted_resp = get_blacklisted_response(request)
-        if blacklisted_resp:
-            return blacklisted_resp
+        if blacklist:
+            blacklisted_resp = get_blacklisted_response(request)
+            if blacklisted_resp:
+                return blacklisted_resp
 
         # Run the wrapped view, and capture the data returned.
         response = f(request, *args, **kwargs)
