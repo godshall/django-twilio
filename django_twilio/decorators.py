@@ -67,6 +67,10 @@ def twilio_view(method='POST', blacklist=True):
         def wrapped(request, *args, **kwargs):
             """The wrapped function that our decorator will return."""
 
+            # Using the ``method`` param, ensure the incoming HTTP request is
+            # the correct type (either GET or POST):
+            response = require_method(f)(request, *args, **kwargs)
+
             # Only handle Twilio forgery protection stuff if we're running in
             # production. This way, developers can test their Twilio view code
             # without getting errors.
@@ -86,11 +90,6 @@ def twilio_view(method='POST', blacklist=True):
                 #      environments.
                 #   4. A special HTTP header, ``HTTP_X_TWILIO_SIGNATURE`` which
                 #      contains a hash that we'll use to check for forged requests.
-
-                # Using the ``method`` param, ensure the incoming HTTP request is
-                # the correct type (either GET or POST):
-                response = require_method(f)(request, *args, **kwargs)
-
                 if isinstance(response, HttpResponse):
                     return response
 
