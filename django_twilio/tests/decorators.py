@@ -4,7 +4,8 @@ from base64 import encodestring
 
 from django.conf import settings
 from django.http import HttpResponse
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, RequestFactory
+from django.utils.unittest import TestCase
 
 from twilio.twiml import Response
 
