@@ -69,8 +69,7 @@ def twilio_view(method='POST', blacklist=True):
 
             # Using the ``method`` param, ensure the incoming HTTP request is
             # the correct type (either GET or POST):
-            response = require_method(f)(request, *args, **kwargs)
-            return response
+            wrapped_func = require_method(f)
 
             # Only handle Twilio forgery protection stuff if we're running in
             # production. This way, developers can test their Twilio view code
@@ -116,7 +115,7 @@ def twilio_view(method='POST', blacklist=True):
 
 
             # Run the wrapped view, and capture the data returned.
-            response = f(request, *args, **kwargs)
+            response = wrapped_func(request, *args, **kwargs)
 
             # If the view returns a string (or a ``twilio.Verb`` object), we'll
             # assume it is XML TwilML data and pass it back with the appropriate
