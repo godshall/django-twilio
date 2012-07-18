@@ -12,6 +12,7 @@ from twilio.twiml import Response
 from django_twilio import settings as django_twilio_settings
 from django_twilio.exceptions import InvalidMethodError
 from django_twilio.decorators import twilio_view
+from django_twilio.models import Caller
 #from django_twilio.tests.views import response_view, str_view, verb_view
 
 
@@ -190,6 +191,21 @@ class TwilioViewTest(TestCase):
     def test_is_not_csrf_exempt_when_method_is_get(self):
         test_view = twilio_view(method='GET')(str_view)
         self.assertFalse(hasattr(test_view, 'csrf_exempt'))
+
+    def test_blacklist_works(self):
+        test_view = twilio_view(method='GET', blacklist=True)(str_view)
+
+        # Create a blacklisted caller:
+        Caller.objects.create(phone_number='+18182223333', blacklisted=True)
+
+        # Generate a fake request from this caller:
+        request = self.factory.get('/test/', {'From': '+18182223333'})
+        response = test_view(request)
+
+        # Make sure the caller got rejected:
+        expected = Response()
+        expected.reject()
+        self.assertEqual(response.content, str(expected))
 
 
 #    def test_requires_post(self):
