@@ -110,16 +110,16 @@ def twilio_view(method='POST', blacklist=True):
                 if not validator.validate(url, request.POST, signature):
                     return HttpResponseForbidden()
 
-
-            # If the user requesting service is blacklisted, reject their
-            # request.
+            # If the blacklist functionality is enabled (eg:
+            # ``blacklist=True``), and the user requesting service is
+            # blacklisted, reject the request:
             if blacklist:
                 blacklisted_resp = get_blacklisted_response(request)
                 if blacklisted_resp:
                     return blacklisted_resp
 
-            if isinstance(response, HttpResponse):
-                return response
+#            if isinstance(response, HttpResponse):
+#                return response
 
 
 
