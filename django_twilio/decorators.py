@@ -61,9 +61,11 @@ def twilio_view(method='POST', blacklist=True):
     require_method = require_POST if method == 'post' else require_GET
 
     def decorator(f):
+        """The actual decorator to generate."""
 
         @wraps(f)
         def wrapped(request, *args, **kwargs):
+            """The wrapped function that our decorator will return."""
 
             # Only handle Twilio forgery protection stuff if we're running in
             # production. This way, developers can test their Twilio view code
