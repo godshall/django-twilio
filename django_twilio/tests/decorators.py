@@ -163,6 +163,8 @@ class TwilioViewTest(TestCase):
 
     def test_invalid_http_methods_raise_exception(self):
         self.assertRaises(InvalidMethodError, twilio_view, method='put')
+        self.assertRaises(InvalidMethodError, twilio_view, method='delete')
+        self.assertRaises(InvalidMethodError, twilio_view, method='patch')
 
     def test_valid_http_methods_dont_raise_exception(self):
         twilio_view(method='get')(str_view)
