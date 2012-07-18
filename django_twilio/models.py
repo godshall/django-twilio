@@ -13,4 +13,4 @@ class Caller(models.Model):
     phone_number = models.CharField(max_length=20, primary_key=True)
 
     def __unicode__(self):
-        return self.phone_number + (' (blacklisted) ' if self.blacklisted else '')
+        return unicode(self.phone_number + (' (blacklisted) ' if self.blacklisted else ''))
