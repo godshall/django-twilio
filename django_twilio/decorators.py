@@ -5,17 +5,18 @@ from functools import wraps
 
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.http import HttpResponse, HttpResponseForbidden
 
 from twilio.twiml import Verb
 from twilio.util import RequestValidator
 
 from django_twilio import settings as django_twilio_settings
+from django_twilio.exceptions import InvalidMethodError
 from django_twilio.utils import get_blacklisted_response
 
 
-def twilio_view(f, method='post', blacklist=True):
+def twilio_view(method='POST', blacklist=True):
     """This decorator provides several helpful shortcuts for writing Twilio
     views.
 
@@ -50,67 +51,87 @@ def twilio_view(f, method='post', blacklist=True):
             r.sms('Thanks for the SMS message!')
             return r
     """
-    @csrf_exempt
-    @wraps(f)
-    def decorator(request, *args, **kwargs):
+    method = method.lower()
 
-        # Only handle Twilio forgery protection stuff if we're running in
-        # production. This way, developers can test their Twilio view code
-        # without getting errors.
-        if not settings.DEBUG:
+    # Ensure that the specified HTTP method is valid:
+    if not any((method == 'get', method == 'post')):
+        raise InvalidMethodError
 
-            # Attempt to gather all required information to allow us to check the
-            # incoming HTTP request for forgery. If any of this information is not
-            # available, then we'll throw a HTTP 403 error (forbidden).
-            #
-            # The required fields to check for forged requests are:
-            #
-            #   1. ``TWILIO_ACCOUNT_SID`` (set in the site's settings module).
-            #   2. ``TWILIO_AUTH_TOKEN`` (set in the site's settings module).
-            #   3. The full URI of the request, eg: 'http://mysite.com/test/view/'.
-            #      This may not necessarily be available if this view is being
-            #      called via a unit testing library, or in certain localized
-            #      environments.
-            #   4. A special HTTP header, ``HTTP_X_TWILIO_SIGNATURE`` which
-            #      contains a hash that we'll use to check for forged requests.
-            # Ensure the request method is POST
-            response = require_POST(f)(request, *args, **kwargs)
-            if isinstance(response, HttpResponse):
+    def decorator(f):
+
+        @wraps(f)
+        def wrapped(request, *args, **kwargs):
+
+            # Only handle Twilio forgery protection stuff if we're running in
+            # production. This way, developers can test their Twilio view code
+            # without getting errors.
+            if not settings.DEBUG:
+
+                # Attempt to gather all required information to allow us to check the
+                # incoming HTTP request for forgery. If any of this information is not
+                # available, then we'll throw a HTTP 403 error (forbidden).
+                #
+                # The required fields to check for forged requests are:
+                #
+                #   1. ``TWILIO_ACCOUNT_SID`` (set in the site's settings module).
+                #   2. ``TWILIO_AUTH_TOKEN`` (set in the site's settings module).
+                #   3. The full URI of the request, eg: 'http://mysite.com/test/view/'.
+                #      This may not necessarily be available if this view is being
+                #      called via a unit testing library, or in certain localized
+                #      environments.
+                #   4. A special HTTP header, ``HTTP_X_TWILIO_SIGNATURE`` which
+                #      contains a hash that we'll use to check for forged requests.
+
+                # Using the ``method`` param, ensure the incoming HTTP request is
+                # the correct type (either POST or GET):
+                if method.lower() == 'post':
+                    response = require_POST(f)(request, *args, **kwargs)
+                else:
+                    response = require_GET(f)(request, *args, **kwargs)
+
+                if isinstance(response, HttpResponse):
+                    return response
+
+                # Validate the request
+                try:
+                    validator = RequestValidator(django_twilio_settings.TWILIO_AUTH_TOKEN)
+                    url = request.build_absolute_uri()
+                    signature = request.META['HTTP_X_TWILIO_SIGNATURE']
+                except (AttributeError, KeyError):
+                    return HttpResponseForbidden()
+
+                # Now that we have all the required information to perform forgery
+                # checks, we'll actually do the forgery check.
+                if not validator.validate(url, request.POST, signature):
+                    return HttpResponseForbidden()
+
+            # If the user requesting service is blacklisted, reject their
+            # request.
+            if blacklist:
+                blacklisted_resp = get_blacklisted_response(request)
+                if blacklisted_resp:
+                    return blacklisted_resp
+
+            # Run the wrapped view, and capture the data returned.
+            response = f(request, *args, **kwargs)
+
+            # If the view returns a string (or a ``twilio.Verb`` object), we'll
+            # assume it is XML TwilML data and pass it back with the appropriate
+            # mimetype. We won't check the XML data because that would be too time
+            # consuming for every request. Instead, we'll let the errors pass
+            # through to be dealt with by the developer.
+            if isinstance(response, str):
+                return HttpResponse(response, mimetype='application/xml')
+            elif isinstance(response, Verb):
+                return HttpResponse(str(response), mimetype='application/xml')
+            else:
                 return response
 
-            # Validate the request
-            try:
-                validator = RequestValidator(django_twilio_settings.TWILIO_AUTH_TOKEN)
-                url = request.build_absolute_uri()
-                signature = request.META['HTTP_X_TWILIO_SIGNATURE']
-            except (AttributeError, KeyError):
-                return HttpResponseForbidden()
+        # If the developer wants us to force a POST from Twilio, make sure we make
+        # the view exempt from CSRF checks:
+        if method == 'post':
+            wrapped = csrf_exempt(wrapped)
 
-            # Now that we have all the required information to perform forgery
-            # checks, we'll actually do the forgery check.
-            if not validator.validate(url, request.POST, signature):
-                return HttpResponseForbidden()
-
-        # If the user requesting service is blacklisted, reject their
-        # request.
-        if blacklist:
-            blacklisted_resp = get_blacklisted_response(request)
-            if blacklisted_resp:
-                return blacklisted_resp
-
-        # Run the wrapped view, and capture the data returned.
-        response = f(request, *args, **kwargs)
-
-        # If the view returns a string (or a ``twilio.Verb`` object), we'll
-        # assume it is XML TwilML data and pass it back with the appropriate
-        # mimetype. We won't check the XML data because that would be too time
-        # consuming for every request. Instead, we'll let the errors pass
-        # through to be dealt with by the developer.
-        if isinstance(response, str):
-            return HttpResponse(response, mimetype='application/xml')
-        elif isinstance(response, Verb):
-            return HttpResponse(str(response), mimetype='application/xml')
-        else:
-            return response
+        return wrapped
 
     return decorator
