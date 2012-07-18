@@ -57,6 +57,9 @@ def twilio_view(method='POST', blacklist=True):
     if not any((method == 'get', method == 'post')):
         raise InvalidMethodError
 
+    # Assign the proper method handling function:
+    require_method = require_POST if method == 'post' else require_GET
+
     def decorator(f):
 
         @wraps(f)
@@ -83,11 +86,8 @@ def twilio_view(method='POST', blacklist=True):
                 #      contains a hash that we'll use to check for forged requests.
 
                 # Using the ``method`` param, ensure the incoming HTTP request is
-                # the correct type (either POST or GET):
-                if method.lower() == 'post':
-                    response = require_POST(f)(request, *args, **kwargs)
-                else:
-                    response = require_GET(f)(request, *args, **kwargs)
+                # the correct type (either GET or POST):
+                response = require_method(f)(request, *args, **kwargs)
 
                 if isinstance(response, HttpResponse):
                     return response
