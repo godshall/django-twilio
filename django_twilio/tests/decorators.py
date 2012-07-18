@@ -149,22 +149,6 @@ def str_view(request):
     return '<Response><Sms>hi</Sms></Response>'
 
 
-@twilio_view()
-def str_view_post(request):
-    """This view simply tells Twilio to send an SMS reply to the user
-    which says 'hi'.
-    """
-    return '<Response><Sms>hi</Sms></Response>'
-
-
-@twilio_view(method='GET')
-def str_view_get(request):
-    """This view simply tells Twilio to send an SMS reply to the user
-    which says 'hi'.
-    """
-    return '<Response><Sms>hi</Sms></Response>'
-
-
 class TwilioViewTest(TestCase):
 
     def setUp(self):
@@ -185,22 +169,25 @@ class TwilioViewTest(TestCase):
         twilio_view(method='post')(str_view)
 
     def test_using_invalid_http_methods_raises_405(self):
+        test_view = twilio_view(method='GET')(str_view)
+
         request = self.factory.post('/test/')
-        response = str_view_get(request)
+        response = test_view(request)
         self.assertEqual(response.status_code, 405)
+
+        test_view = twilio_view(method='POST')(str_view)
 
         request = self.factory.get('/test/')
-        response = str_view_post(request)
+        response = test_view(request)
         self.assertEqual(response.status_code, 405)
 
-#    def test_is_csrf_exempt_when_method_is_post(self):
-#        self.assertTrue(str_view_post.csrf_exempt)
-#
-#    def test_is_not_csrf_exempt_when_method_is_get(self):
-#        self.assertFalse(str_view_get.csrf_exempt)
+    def test_is_csrf_exempt_when_method_is_post(self):
+        test_view = twilio_view(method='POST')(str_view)
+        self.assertTrue(hasattr(test_view, 'csrf_exempt') and test_view.csrf_exempt)
 
-
-
+    def test_is_not_csrf_exempt_when_method_is_get(self):
+        test_view = twilio_view(method='GET')(str_view)
+        self.assertFalse(hasattr(test_view, 'csrf_exempt'))
 
 
 #    def test_requires_post(self):
