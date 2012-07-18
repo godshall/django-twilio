@@ -70,6 +70,7 @@ def twilio_view(method='POST', blacklist=True):
             # Using the ``method`` param, ensure the incoming HTTP request is
             # the correct type (either GET or POST):
             response = require_method(f)(request, *args, **kwargs)
+            return response
 
             # Only handle Twilio forgery protection stuff if we're running in
             # production. This way, developers can test their Twilio view code
@@ -112,6 +113,7 @@ def twilio_view(method='POST', blacklist=True):
                 blacklisted_resp = get_blacklisted_response(request)
                 if blacklisted_resp:
                     return blacklisted_resp
+
 
             # Run the wrapped view, and capture the data returned.
             response = f(request, *args, **kwargs)

@@ -184,11 +184,24 @@ class TwilioViewTest(TestCase):
         twilio_view(method='get')(str_view)
         twilio_view(method='post')(str_view)
 
-    def test_is_csrf_exempt_when_method_is_post(self):
-        self.assertTrue(str_view_post.csrf_exempt)
+    def test_using_invalid_http_methods_raises_405(self):
+        request = self.factory.post('/test/')
+        response = str_view_get(request)
+        self.assertEqual(response.status_code, 405)
 
-    def test_is_not_csrf_exempt_when_method_is_get(self):
-        self.assertFalse(str_view_get.csrf_exempt)
+        request = self.factory.get('/test/')
+        response = str_view_post(request)
+        self.assertEqual(response.status_code, 405)
+
+#    def test_is_csrf_exempt_when_method_is_post(self):
+#        self.assertTrue(str_view_post.csrf_exempt)
+#
+#    def test_is_not_csrf_exempt_when_method_is_get(self):
+#        self.assertFalse(str_view_get.csrf_exempt)
+
+
+
+
 
 #    def test_requires_post(self):
 #        debug_orig = settings.DEBUG
