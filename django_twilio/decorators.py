@@ -97,9 +97,6 @@ def twilio_view(method='POST', blacklist=True):
                 #      environments.
                 #   4. A special HTTP header, ``HTTP_X_TWILIO_SIGNATURE`` which
                 #      contains a hash that we'll use to check for forged requests.
-                if isinstance(response, HttpResponse):
-                    return response
-
                 # Validate the request
                 try:
                     validator = RequestValidator(django_twilio_settings.TWILIO_AUTH_TOKEN)
@@ -113,12 +110,17 @@ def twilio_view(method='POST', blacklist=True):
                 if not validator.validate(url, request.POST, signature):
                     return HttpResponseForbidden()
 
+
             # If the user requesting service is blacklisted, reject their
             # request.
             if blacklist:
                 blacklisted_resp = get_blacklisted_response(request)
                 if blacklisted_resp:
                     return blacklisted_resp
+
+            if isinstance(response, HttpResponse):
+                return response
+
 
 
             # Run the wrapped view, and capture the data returned.
