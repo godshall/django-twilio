@@ -71,10 +71,17 @@ def twilio_view(method='POST', blacklist=True):
             # the correct type (either GET or POST):
             wrapped_func = require_method(f)
 
-            # Only handle Twilio forgery protection stuff if we're running in
-            # production. This way, developers can test their Twilio view code
-            # without getting errors.
-            if not settings.DEBUG:
+            # Only handle Twilio forgery protection stuff if:
+            #
+            #   - Debug is currently disabled (eg: we're in production), and
+            #   - The request is a POST.
+            #
+            # If both of these are true, then it means we need to check the
+            # crypto hash that Twilio sends us to ensure that Twilio is indeed
+            # the one sending the request.
+            #
+            # See: http://www.twilio.com/docs/security#validating-requests
+            if not settings.DEBUG and request.method == 'POST':
 
                 # Attempt to gather all required information to allow us to check the
                 # incoming HTTP request for forgery. If any of this information is not
