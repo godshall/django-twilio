@@ -67,10 +67,6 @@ def twilio_view(method='POST', blacklist=True):
         def wrapped(request, *args, **kwargs):
             """The wrapped function that our decorator will return."""
 
-            # Using the ``method`` param, ensure the incoming HTTP request is
-            # the correct type (either GET or POST):
-            wrapped_func = require_method(f)
-
             # Only handle Twilio forgery protection stuff if:
             #
             #   - Debug is currently disabled (eg: we're in production), and
@@ -109,6 +105,10 @@ def twilio_view(method='POST', blacklist=True):
                 # checks, we'll actually do the forgery check.
                 if not validator.validate(url, request.POST, signature):
                     return HttpResponseForbidden()
+
+            # Using the ``method`` param, ensure the incoming HTTP request is
+            # the correct type (either GET or POST):
+            wrapped_func = require_method(f)
 
             # If the blacklist functionality is enabled (eg:
             # ``blacklist=True``), and the user requesting service is
