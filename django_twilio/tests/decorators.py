@@ -207,6 +207,14 @@ class TwilioViewTest(TestCase):
         expected.reject()
         self.assertEqual(response.content, str(expected))
 
+    def test_return_xml(self):
+        test_view = twilio_view(method='GET', blacklist=True)(str_view)
+        request = self.factory.get('/test/')
+        response = test_view(request)
+        self.assertEqual(response.content, str_view('test'))
+
+
+
 
 #    def test_requires_post(self):
 #        debug_orig = settings.DEBUG
