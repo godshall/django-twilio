@@ -118,11 +118,6 @@ def twilio_view(method='POST', blacklist=True):
                 if blacklisted_resp:
                     return blacklisted_resp
 
-#            if isinstance(response, HttpResponse):
-#                return response
-
-
-
             # Run the wrapped view, and capture the data returned.
             response = wrapped_func(request, *args, **kwargs)
 
