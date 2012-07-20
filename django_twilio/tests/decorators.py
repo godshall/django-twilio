@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.test import Client, RequestFactory
 from django.utils.unittest import TestCase
 
-from twilio.twiml import Response
+from twilio.twiml import Response, Verb
 
 from django_twilio import settings as django_twilio_settings
 from django_twilio.exceptions import InvalidMethodError
@@ -150,6 +150,13 @@ def str_view(request):
     return '<Response><Sms>hi</Sms></Response>'
 
 
+def verb_view(request):
+    """A simple view that returns a Twilio verb."""
+    r = Response()
+    r.say('hello')
+    return r
+
+
 class TwilioViewTest(TestCase):
 
     def setUp(self):
@@ -213,8 +220,11 @@ class TwilioViewTest(TestCase):
         response = test_view(request)
         self.assertEqual(response.content, str_view('test'))
 
-
-
+    def test_return_verb(self):
+        test_view = twilio_view(method='GET', blacklist=True)(verb_view)
+        request = self.factory.get('/test/')
+        response = test_view(request)
+        self.assertEqual(response.content, '<?xml version="1.0" encoding="UTF-8"?><Response><Say>hello</Say></Response>')
 
 #    def test_requires_post(self):
 #        debug_orig = settings.DEBUG
