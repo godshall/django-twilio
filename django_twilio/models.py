@@ -5,7 +5,7 @@ from django.conf import settings
 
 from phonenumber_field.modelfields import PhoneNumberField
 
-from django_twilio.compat import AUTH_USER_MODEL
+AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 class Caller(models.Model):
